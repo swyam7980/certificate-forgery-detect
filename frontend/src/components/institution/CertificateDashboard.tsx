@@ -1,0 +1,75 @@
+import { useEffect, useState } from 'react';
+import { Card } from '../common/Card';
+import { apiService } from '../../services/api';
+import { formatDate, truncateHash } from '../../utils/helpers';
+import type { Certificate } from '../../types';
+
+export const CertificateDashboard = () => {
+  const [certificates, setCertificates] = useState<Certificate[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    loadCertificates();
+  }, []);
+
+  const loadCertificates = async () => {
+    try {
+      const data = await apiService.getInstitutionCertificates();
+      setCertificates(data);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to load certificates');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="text-center py-8">Loading certificates...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+        {error}
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <h2 className="text-2xl font-bold mb-6">Issued Certificates</h2>
+      
+      {certificates.length === 0 ? (
+        <Card>
+          <p className="text-gray-500 text-center py-8">No certificates issued yet</p>
+        </Card>
+      ) : (
+        <div className="grid gap-4">
+          {certificates.map((cert) => (
+            <Card key={cert.id}>
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="font-semibold text-lg">{cert.courseName}</h3>
+                  <p className="text-gray-600 mt-1">Student: {cert.studentName}</p>
+                  <p className="text-sm text-gray-500">ID: {cert.studentId}</p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    Issued: {formatDate(cert.issueDate)}
+                  </p>
+                </div>
+                <div className="text-right text-sm">
+                  <p className="text-gray-500">
+                    Hash: {truncateHash(cert.certificateHash)}
+                  </p>
+                  <p className="text-gray-500 mt-1">
+                    TX: {truncateHash(cert.blockchainTxHash)}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};

@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
 from typing import Optional
+from pathlib import Path
 
 
 class Settings(BaseSettings):
@@ -27,7 +28,8 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "CertifyChain"
     
     class Config:
-        env_file = ".env"
+        # Try to find .env in backend directory
+        env_file = str(Path(__file__).parent.parent / ".env")
         case_sensitive = True
 
 

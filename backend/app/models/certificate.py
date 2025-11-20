@@ -54,7 +54,7 @@ class Certificate(Base):
     course_name = Column(String, nullable=False)
     issue_date = Column(Date, nullable=False)
     
-    metadata = Column(JSON, nullable=True)
+    cert_metadata = Column(JSON, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -72,7 +72,7 @@ class Verification(Base):
     verification_type = Column(String, nullable=False)  # 'blockchain', 'ai', 'complete'
     trust_score = Column(Float, nullable=True)
     anomalies = Column(JSON, nullable=True)
-    details = Column(JSON, nullable=True)
+    verification_details = Column(JSON, nullable=True)
     
     is_valid = Column(Boolean, default=False)
     blockchain_verified = Column(Boolean, nullable=True)

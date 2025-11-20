@@ -1,0 +1,19 @@
+{
+  "name": "certifychain-blockchain",
+  "version": "1.0.0",
+  "description": "Smart contracts for CertifyChain certificate verification system",
+  "main": "index.js",
+  "scripts": {
+    "test": "hardhat test",
+    "compile": "hardhat compile",
+    "deploy:local": "hardhat run scripts/deploy.js --network localhost",
+    "node": "hardhat node"
+  },
+  "keywords": ["blockchain", "ethereum", "certificates", "verification"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "hardhat": "^2.19.4"
+  }
+}

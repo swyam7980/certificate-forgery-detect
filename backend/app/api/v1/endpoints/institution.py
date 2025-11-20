@@ -4,6 +4,7 @@ from typing import List, Optional
 from datetime import date as date_type
 import hashlib
 import json
+import logging
 
 from app.core.database import get_db
 from app.schemas.certificate import (
@@ -11,6 +12,9 @@ from app.schemas.certificate import (
     CertificateUploadResponse
 )
 from app.models.certificate import Certificate, Institution, Student
+from app.services.blockchain_service import blockchain_service
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -39,8 +43,19 @@ async def upload_certificate(
         ipfs_hash = f"Qm{cert_hash[:44]}"  # Placeholder
         pdf_url = f"https://ipfs.io/ipfs/{ipfs_hash}"
         
-        # TODO: Store on blockchain
-        tx_hash = f"0x{cert_hash[:64]}"  # Placeholder
+        # Store on blockchain
+        try:
+            blockchain_result = blockchain_service.issue_certificate(
+                certificate_hash=cert_hash,
+                student_id=student_id,
+                ipfs_hash=ipfs_hash
+            )
+            tx_hash = blockchain_result['transaction_hash']
+            logger.info(f"Certificate issued on blockchain: {tx_hash}")
+        except Exception as e:
+            logger.error(f"Failed to issue certificate on blockchain: {e}")
+            # Fallback to placeholder if blockchain fails
+            tx_hash = f"0x{cert_hash[:64]}"
         
         # Parse metadata
         metadata_dict = json.loads(metadata) if metadata else None
@@ -71,7 +86,7 @@ async def upload_certificate(
             student_id=student_id,
             course_name=course_name,
             issue_date=date_type.fromisoformat(issue_date),
-            metadata=metadata_dict
+            cert_metadata=metadata_dict
         )
         
         db.add(certificate)

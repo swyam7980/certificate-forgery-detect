@@ -1,10 +1,14 @@
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
 from sqlalchemy.orm import Session
 from typing import Optional
+import logging
 
 from app.core.database import get_db
 from app.schemas.certificate import VerificationResult, VerificationRequest
 from app.models.certificate import Certificate, Verification
+from app.services.blockchain_service import blockchain_service
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -33,8 +37,26 @@ async def verify_blockchain(
             anomalies=["Certificate not found in blockchain"]
         )
     
-    # TODO: Verify on blockchain
-    blockchain_verified = True  # Placeholder
+    # Verify on blockchain
+    try:
+        blockchain_result = blockchain_service.verify_certificate(certificate.certificate_hash)
+        blockchain_verified = blockchain_result['is_valid']
+        
+        if not blockchain_result['exists']:
+            blockchain_verified = False
+            anomalies = ["Certificate not found on blockchain"]
+        elif blockchain_result['is_revoked']:
+            blockchain_verified = False
+            anomalies = ["Certificate has been revoked"]
+        else:
+            anomalies = []
+            
+        logger.info(f"Blockchain verification result: {blockchain_verified}")
+    except Exception as e:
+        logger.error(f"Blockchain verification failed: {e}")
+        logger.exception("Full traceback:")  # Log full traceback
+        blockchain_verified = False
+        anomalies = [f"Blockchain verification error: {str(e)}"]
     
     # Create verification record
     verification = Verification(
@@ -60,14 +82,15 @@ async def verify_blockchain(
         "institution_name": certificate.institution.name if certificate.institution else "Unknown",
         "institution_id": certificate.institution_id,
         "created_at": certificate.created_at,
-        "metadata": certificate.metadata
+        "metadata": certificate.cert_metadata
     }
     
     return VerificationResult(
         is_valid=blockchain_verified,
         certificate_hash=request.hash,
         blockchain_verified=blockchain_verified,
-        certificate=cert_response
+        anomalies=anomalies if not blockchain_verified else None,
+        certificate=cert_response  # type: ignore
     )
 
 
@@ -161,7 +184,7 @@ async def verify_complete(
                 blockchain_verified=blockchain_verified,
                 ai_verified=ai_verified,
                 trust_score=trust_score,
-                details=details,
+                verification_details=details,
                 anomalies=anomalies if anomalies else None
             )
             db.add(verification)

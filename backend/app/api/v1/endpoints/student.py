@@ -10,7 +10,7 @@ from app.models.certificate import Certificate, Student
 router = APIRouter()
 
 
-@router.get("/certificates/{student_id}", response_model=List[CertificateResponse])
+@router.get("/{student_id}/certificates", response_model=List[CertificateResponse])
 def get_student_certificates(
     student_id: str,
     db: Session = Depends(get_db)
@@ -41,14 +41,14 @@ def get_student_certificates(
             "institution_name": cert.institution.name if cert.institution else "Unknown",
             "institution_id": cert.institution_id,
             "created_at": cert.created_at,
-            "metadata": cert.metadata
+            "metadata": cert.cert_metadata
         }
         result.append(cert_dict)
     
     return result
 
 
-@router.get("/portfolio/{student_id}")
+@router.get("/{student_id}/portfolio")
 def get_student_portfolio(
     student_id: str,
     db: Session = Depends(get_db)
@@ -81,7 +81,7 @@ def get_student_portfolio(
             "institution_name": cert.institution.name if cert.institution else "Unknown",
             "institution_id": cert.institution_id,
             "created_at": cert.created_at,
-            "metadata": cert.metadata
+            "metadata": cert.cert_metadata
         }
         result_certs.append(cert_dict)
     

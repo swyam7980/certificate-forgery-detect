@@ -167,21 +167,28 @@ class BlockchainService:
             Certificate details from blockchain
         """
         if not self.contract:
+            logger.error("❌ Contract not loaded - cannot verify certificate")
             raise Exception("Contract not loaded")
         
         if not self.is_connected():
+            logger.error("❌ Not connected to blockchain")
             raise Exception("Not connected to blockchain")
         
         try:
+            logger.info(f"🔗 Converting hash to bytes32: {certificate_hash}")
             # Convert hash to bytes32
             hash_bytes = Web3.keccak(text=certificate_hash)
+            logger.info(f"📦 Hash bytes: {hash_bytes.hex()}")
             
+            logger.info(f"📞 Calling verifyCertificate on contract...")
             # Call contract function
             result = self.contract.functions.verifyCertificate(hash_bytes).call()
             
             exists, issuer, student_id, issue_date, ipfs_hash, is_revoked = result
             
-            return {
+            logger.info(f"📊 Contract returned - exists: {exists}, issuer: {issuer}, student_id: {student_id}, is_revoked: {is_revoked}")
+            
+            verification_result = {
                 'exists': exists,
                 'issuer': issuer,
                 'student_id': student_id,
@@ -191,8 +198,12 @@ class BlockchainService:
                 'is_valid': exists and not is_revoked
             }
             
+            logger.info(f"✅ Verification result: {verification_result}")
+            return verification_result
+            
         except Exception as e:
-            logger.error(f"Failed to verify certificate: {e}")
+            logger.error(f"❌ Failed to verify certificate: {e}")
+            logger.exception("Full exception traceback:")
             raise
     
     def revoke_certificate(self, certificate_hash: str) -> Dict[str, Any]:

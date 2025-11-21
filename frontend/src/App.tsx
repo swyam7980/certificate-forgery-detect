@@ -6,6 +6,8 @@ import { Home } from './pages/Home';
 import { Institution } from './pages/Institution';
 import { Student } from './pages/Student';
 import { Verifier } from './pages/Verifier';
+import { Auth } from './pages/Auth';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { ROUTES } from './utils/constants';
 
 const queryClient = new QueryClient();
@@ -19,7 +21,15 @@ function App() {
           <main className="flex-1">
             <Routes>
               <Route path={ROUTES.HOME} element={<Home />} />
-              <Route path={ROUTES.INSTITUTION} element={<Institution />} />
+              <Route path={ROUTES.AUTH} element={<Auth />} />
+              <Route 
+                path={ROUTES.INSTITUTION} 
+                element={
+                  <ProtectedRoute>
+                    <Institution />
+                  </ProtectedRoute>
+                } 
+              />
               <Route path={ROUTES.STUDENT} element={<Student />} />
               <Route path={ROUTES.VERIFIER} element={<Verifier />} />
             </Routes>

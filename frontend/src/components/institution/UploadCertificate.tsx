@@ -47,7 +47,19 @@ export const UploadCertificate = () => {
       setPdfFile(null);
       
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to upload certificate');
+      // Extract detailed error message
+      const errorMessage = err.response?.data?.detail || 
+                          err.response?.data?.message || 
+                          err.message || 
+                          'Failed to upload certificate';
+      
+      // Check if it's a blockchain error
+      if (errorMessage.includes('Certificate already exists') || 
+          errorMessage.includes('already exists')) {
+        setError('⚠️ This certificate has already been uploaded to the blockchain. Each certificate can only be issued once.');
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
@@ -119,12 +131,48 @@ export const UploadCertificate = () => {
           )}
 
           {result && (
-            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg space-y-2">
-              <p className="font-semibold">{result.message}</p>
-              <div className="text-sm space-y-1">
-                <p><strong>Certificate Hash:</strong> {result.certificateHash.substring(0, 20)}...</p>
-                <p><strong>IPFS Hash:</strong> {result.ipfsHash.substring(0, 20)}...</p>
-                <p><strong>Blockchain TX:</strong> {result.blockchainTxHash.substring(0, 20)}...</p>
+            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg space-y-3">
+              <p className="font-semibold text-lg">✅ {result.message}</p>
+              <div className="text-sm space-y-2">
+                <div>
+                  <strong>Certificate Hash:</strong>
+                  <div className="flex gap-2 items-center mt-1">
+                    <code className="bg-white px-2 py-1 rounded text-xs break-all flex-1">{result.certificateHash}</code>
+                    <button
+                      type="button"
+                      onClick={() => navigator.clipboard.writeText(result.certificateHash)}
+                      className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <strong>IPFS Hash:</strong>
+                  <div className="flex gap-2 items-center mt-1">
+                    <code className="bg-white px-2 py-1 rounded text-xs break-all flex-1">{result.ipfsHash}</code>
+                    <button
+                      type="button"
+                      onClick={() => navigator.clipboard.writeText(result.ipfsHash)}
+                      className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <strong>Blockchain TX:</strong>
+                  <div className="flex gap-2 items-center mt-1">
+                    <code className="bg-white px-2 py-1 rounded text-xs break-all flex-1">{result.blockchainTxHash}</code>
+                    <button
+                      type="button"
+                      onClick={() => navigator.clipboard.writeText(result.blockchainTxHash)}
+                      className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}

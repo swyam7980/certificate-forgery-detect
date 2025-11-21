@@ -67,3 +67,33 @@ export interface UploadCertificateResponse {
   pdfUrl: string;
   message: string;
 }
+
+// Auth types
+export interface InstitutionProfile {
+  id: string;
+  name: string;
+  email: string;
+  walletAddress: string;
+  logoUrl?: string;
+  createdAt: string;
+}
+
+export interface LoginResponse {
+  accessToken: string;
+  tokenType: string;
+  institution: InstitutionProfile;
+}
+
+export interface SignupRequest {
+  name: string;
+  email: string;
+  password: string;
+  walletAddress: string;
+  logoUrl?: string;
+}
+
+export interface SignupResponse {
+  accessToken: string;
+  tokenType: string;
+  institution: InstitutionProfile;
+}

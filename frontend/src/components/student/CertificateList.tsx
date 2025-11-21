@@ -1,11 +1,14 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '../common/Button';
 import { Card } from '../common/Card';
 import { apiService } from '../../services/api';
-import { formatDate, truncateHash, downloadFile } from '../../utils/helpers';
+import { formatDate, truncateHash } from '../../utils/helpers';
+import { ROUTES } from '../../utils/constants';
 import type { Certificate } from '../../types';
 
 export const CertificateList = () => {
+  const navigate = useNavigate();
   const [studentId, setStudentId] = useState('');
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [loading, setLoading] = useState(false);
@@ -37,19 +40,9 @@ export const CertificateList = () => {
     }
   };
 
-  const handleDownload = async (certId: string, courseName: string) => {
-    try {
-      const blob = await apiService.downloadCertificate(certId);
-      const url = URL.createObjectURL(blob);
-      downloadFile(url, `${courseName}_certificate.pdf`);
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error('Download failed:', err);
-    }
-  };
-
-  const getShareLink = (_certId: string) => {
-    return `${window.location.origin}/portfolio/${studentId}`;
+  const handleVerifyCertificate = (certificateHash: string) => {
+    // Navigate to verifier with hash as URL parameter
+    navigate(`${ROUTES.VERIFIER}?hash=${encodeURIComponent(certificateHash)}`);
   };
 
   return (
@@ -99,26 +92,59 @@ export const CertificateList = () => {
                   </span>
                 </div>
 
-                <div className="text-xs text-gray-500 mb-3">
-                  <p>Hash: {truncateHash(cert.certificateHash)}</p>
+                <div className="space-y-3 mb-4">
+                  <div>
+                    <p className="text-xs text-gray-600 font-medium mb-1">Certificate Hash:</p>
+                    <div className="flex gap-2 items-center">
+                      <code className="bg-gray-100 px-2 py-1 rounded text-xs break-all flex-1">
+                        {cert.certificateHash}
+                      </code>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(cert.certificateHash);
+                          alert('Hash copied to clipboard!');
+                        }}
+                        className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 whitespace-nowrap"
+                      >
+                        Copy
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-600 font-medium mb-1">Blockchain TX:</p>
+                    <div className="flex gap-2 items-center">
+                      <code className="bg-gray-100 px-2 py-1 rounded text-xs break-all flex-1">
+                        {cert.blockchainTxHash}
+                      </code>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(cert.blockchainTxHash);
+                          alert('Transaction hash copied!');
+                        }}
+                        className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 whitespace-nowrap"
+                      >
+                        Copy
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex gap-2">
                   <Button
-                    onClick={() => handleDownload(cert.id, cert.courseName)}
+                    onClick={() => handleVerifyCertificate(cert.certificateHash)}
                     variant="primary"
                   >
-                    Download
+                    Verify Certificate
                   </Button>
-                  <Button
+                  <button
                     onClick={() => {
-                      navigator.clipboard.writeText(getShareLink(cert.id));
-                      alert('Portfolio link copied!');
+                      navigator.clipboard.writeText(cert.certificateHash);
+                      alert('Certificate hash copied to clipboard!');
                     }}
-                    variant="secondary"
+                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
                   >
-                    Share Portfolio
-                  </Button>
+                    Copy Hash
+                  </button>
                 </div>
               </div>
             ))}

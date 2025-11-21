@@ -4,6 +4,7 @@ export const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || '';
 
 export const ROUTES = {
   HOME: '/',
+  AUTH: '/auth',
   INSTITUTION: '/institution',
   STUDENT: '/student',
   VERIFIER: '/verifier',

@@ -57,13 +57,35 @@ export const CertificateDashboard = () => {
                     Issued: {formatDate(cert.issueDate)}
                   </p>
                 </div>
-                <div className="text-right text-sm">
-                  <p className="text-gray-500">
-                    Hash: {truncateHash(cert.certificateHash)}
-                  </p>
-                  <p className="text-gray-500 mt-1">
-                    TX: {truncateHash(cert.blockchainTxHash)}
-                  </p>
+                <div className="text-right text-sm space-y-2">
+                  <div>
+                    <p className="text-gray-600 font-medium mb-1">Certificate Hash:</p>
+                    <div className="flex gap-2 items-center">
+                      <code className="bg-gray-100 px-2 py-1 rounded text-xs break-all">
+                        {cert.certificateHash}
+                      </code>
+                      <button
+                        onClick={() => navigator.clipboard.writeText(cert.certificateHash)}
+                        className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 whitespace-nowrap"
+                      >
+                        Copy
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-gray-600 font-medium mb-1">Blockchain TX:</p>
+                    <div className="flex gap-2 items-center">
+                      <code className="bg-gray-100 px-2 py-1 rounded text-xs break-all">
+                        {cert.blockchainTxHash}
+                      </code>
+                      <button
+                        onClick={() => navigator.clipboard.writeText(cert.blockchainTxHash)}
+                        className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 whitespace-nowrap"
+                      >
+                        Copy
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </Card>

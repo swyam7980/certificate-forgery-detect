@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Button } from '../common/Button';
 import { Card } from '../common/Card';
 import { apiService } from '../../services/api';
@@ -6,6 +7,7 @@ import { truncateHash } from '../../utils/helpers';
 import type { VerificationResult } from '../../types';
 
 export const VerificationForm = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [hash, setHash] = useState('');
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -13,10 +15,24 @@ export const VerificationForm = () => {
   const [error, setError] = useState('');
   const [verificationType, setVerificationType] = useState<'blockchain' | 'ai' | 'complete'>('blockchain');
 
-  const handleVerify = async (e: React.FormEvent) => {
+  // Check for hash parameter in URL on component mount
+  useEffect(() => {
+    const hashParam = searchParams.get('hash');
+    if (hashParam) {
+      setHash(hashParam);
+      // Auto-trigger verification if hash is provided
+      setTimeout(() => {
+        handleVerify(new Event('submit') as any, hashParam);
+      }, 500);
+    }
+  }, []);
+
+  const handleVerify = async (e: React.FormEvent, prefilledHash?: string) => {
     e.preventDefault();
     
-    if (verificationType !== 'ai' && !hash.trim()) {
+    const hashToVerify = prefilledHash || hash;
+    
+    if (verificationType !== 'ai' && !hashToVerify.trim()) {
       setError('Please enter a certificate hash');
       return;
     }
@@ -34,18 +50,31 @@ export const VerificationForm = () => {
       let response: VerificationResult;
 
       if (verificationType === 'blockchain') {
-        response = await apiService.verifyBlockchain(hash);
+        response = await apiService.verifyBlockchain(hashToVerify);
       } else if (verificationType === 'ai' && pdfFile) {
         response = await apiService.verifyAI(pdfFile);
       } else if (verificationType === 'complete' && pdfFile) {
-        response = await apiService.verifyComplete(hash, pdfFile);
+        response = await apiService.verifyComplete(hashToVerify, pdfFile);
       } else {
         throw new Error('Invalid verification type');
       }
 
-      setResult(response);
+      // Validate response before setting
+      if (response && typeof response === 'object') {
+        setResult(response);
+      } else {
+        throw new Error('Invalid response from server');
+      }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Verification failed');
+      console.error('Verification error:', err);
+      console.error('Error details:', {
+        response: err.response,
+        data: err.response?.data,
+        message: err.message,
+      });
+      const errorMessage = err.response?.data?.detail || err.response?.data?.message || err.message || 'Verification failed';
+      setError(errorMessage);
+      setResult(null);
     } finally {
       setLoading(false);
     }
@@ -148,7 +177,7 @@ export const VerificationForm = () => {
                 </span>
               </div>
 
-              {result.blockchainVerified !== undefined && (
+              {result.blockchainVerified !== undefined && result.blockchainVerified !== null && (
                 <div>
                   <p className="text-sm text-gray-600">
                     Blockchain Status:{' '}
@@ -161,7 +190,7 @@ export const VerificationForm = () => {
                 </div>
               )}
 
-              {result.trustScore !== undefined && (
+              {result.trustScore !== undefined && result.trustScore !== null && (
                 <div>
                   <p className="text-sm text-gray-600 mb-2">Trust Score</p>
                   <div className="w-full bg-gray-200 rounded-full h-4">
@@ -182,31 +211,31 @@ export const VerificationForm = () => {
 
               {result.details && (
                 <div className="grid grid-cols-2 gap-3 text-sm">
-                  {result.details.ocrScore !== undefined && (
+                  {result.details.ocrScore !== undefined && result.details.ocrScore !== null && (
                     <div className="bg-gray-50 p-3 rounded">
                       <p className="font-medium">OCR Score</p>
                       <p className="text-gray-600">{result.details.ocrScore.toFixed(1)}%</p>
                     </div>
                   )}
-                  {result.details.layoutScore !== undefined && (
+                  {result.details.layoutScore !== undefined && result.details.layoutScore !== null && (
                     <div className="bg-gray-50 p-3 rounded">
                       <p className="font-medium">Layout Score</p>
                       <p className="text-gray-600">{result.details.layoutScore.toFixed(1)}%</p>
                     </div>
                   )}
-                  {result.details.logoScore !== undefined && (
+                  {result.details.logoScore !== undefined && result.details.logoScore !== null && (
                     <div className="bg-gray-50 p-3 rounded">
                       <p className="font-medium">Logo Score</p>
                       <p className="text-gray-600">{result.details.logoScore.toFixed(1)}%</p>
                     </div>
                   )}
-                  {result.details.signatureScore !== undefined && (
+                  {result.details.signatureScore !== undefined && result.details.signatureScore !== null && (
                     <div className="bg-gray-50 p-3 rounded">
                       <p className="font-medium">Signature Score</p>
-                      <p className="text-gray-600">{result.details.signatureScore.toFixed(1)}%</p>
+                      <p className="text-gray-660">{result.details.signatureScore.toFixed(1)}%</p>
                     </div>
                   )}
-                  {result.details.tamperScore !== undefined && (
+                  {result.details.tamperScore !== undefined && result.details.tamperScore !== null && (
                     <div className="bg-gray-50 p-3 rounded">
                       <p className="font-medium">Tamper Score</p>
                       <p className="text-gray-600">{result.details.tamperScore.toFixed(1)}%</p>
@@ -215,7 +244,7 @@ export const VerificationForm = () => {
                 </div>
               )}
 
-              {result.anomalies && result.anomalies.length > 0 && (
+              {result.anomalies && Array.isArray(result.anomalies) && result.anomalies.length > 0 && (
                 <div>
                   <p className="font-medium text-sm mb-2">Detected Anomalies:</p>
                   <ul className="list-disc list-inside text-sm text-red-600 space-y-1">

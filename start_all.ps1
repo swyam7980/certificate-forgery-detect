@@ -64,11 +64,9 @@ Write-Host "  Frontend:   http://localhost:5174" -ForegroundColor Cyan
 Write-Host "  Backend:    http://localhost:8000/api/v1/docs" -ForegroundColor Cyan
 Write-Host "  Blockchain: http://localhost:8545" -ForegroundColor Cyan
 
-Write-Host "`nPress any key to run integration tests..." -ForegroundColor Yellow
-$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
-
-Write-Host "`nRunning Integration Tests..." -ForegroundColor Yellow
-python test_integration.py
+Write-Host "`n============================================================" -ForegroundColor Cyan
+Write-Host "  System Ready! Open the frontend to start using the app." -ForegroundColor Green
+Write-Host "============================================================" -ForegroundColor Cyan
 
 Write-Host "`nPress any key to exit..." -ForegroundColor Yellow
 $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")

@@ -1,30 +1,41 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import Optional, Dict, Any, List
 from datetime import datetime, date
 
 
+def to_camel(string: str) -> str:
+    """Convert snake_case to camelCase"""
+    components = string.split('_')
+    return components[0] + ''.join(x.title() for x in components[1:])
+
+
 # Institution Schemas
 class InstitutionBase(BaseModel):
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+    
     name: str
     email: EmailStr
     wallet_address: str
 
 
 class InstitutionCreate(InstitutionBase):
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+    
     password: str
 
 
 class InstitutionResponse(InstitutionBase):
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True, from_attributes=True)
+    
     id: str
     logo_url: Optional[str] = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
-
 
 # Student Schemas
 class StudentBase(BaseModel):
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+    
     name: str
     email: Optional[EmailStr] = None
     student_id: str
@@ -35,15 +46,16 @@ class StudentCreate(StudentBase):
 
 
 class StudentResponse(StudentBase):
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True, from_attributes=True)
+    
     id: str
     created_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 # Certificate Schemas
 class CertificateBase(BaseModel):
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+    
     student_name: str
     student_id: str
     course_name: str
@@ -56,6 +68,8 @@ class CertificateCreate(CertificateBase):
 
 
 class CertificateResponse(CertificateBase):
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True, from_attributes=True)
+    
     id: str
     certificate_hash: str
     ipfs_hash: str
@@ -65,11 +79,10 @@ class CertificateResponse(CertificateBase):
     institution_id: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True
-
 
 class CertificateUploadResponse(BaseModel):
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+    
     success: bool
     certificate_id: str
     certificate_hash: str
@@ -81,10 +94,14 @@ class CertificateUploadResponse(BaseModel):
 
 # Verification Schemas
 class VerificationRequest(BaseModel):
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+    
     hash: Optional[str] = None
 
 
 class VerificationDetails(BaseModel):
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+    
     ocr_score: Optional[float] = None
     layout_score: Optional[float] = None
     logo_score: Optional[float] = None
@@ -94,6 +111,8 @@ class VerificationDetails(BaseModel):
 
 
 class VerificationResult(BaseModel):
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+    
     is_valid: bool
     certificate_hash: str
     blockchain_verified: bool
@@ -106,5 +125,7 @@ class VerificationResult(BaseModel):
 
 # Portfolio Schema
 class PortfolioResponse(BaseModel):
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+    
     student: StudentResponse
     certificates: List[CertificateResponse]

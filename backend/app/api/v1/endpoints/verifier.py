@@ -7,6 +7,7 @@ from app.core.database import get_db
 from app.schemas.certificate import VerificationResult, VerificationRequest, VerificationDetails
 from app.models.certificate import Certificate, Verification
 from app.services.blockchain_service import blockchain_service
+from app.services.ai_verification_service import ai_verification_service
 
 logger = logging.getLogger(__name__)
 
@@ -123,23 +124,30 @@ async def verify_ai(
     Verify certificate using AI forgery detection
     """
     try:
+        logger.info("🤖 Starting AI-only verification...")
+        
         # Read PDF file
         pdf_content = await pdfFile.read()
+        logger.info(f"📄 PDF file received: {pdfFile.filename}, size: {len(pdf_content)} bytes")
         
-        # TODO: Implement AI verification
-        # For now, return placeholder scores
-        trust_score = 85.0
+        # Run AI verification
+        ai_results = ai_verification_service.verify_certificate_ai(pdf_content)
+        
+        # Create verification details
         details = VerificationDetails(
-            ocr_score=90.0,
-            layout_score=85.0,
-            logo_score=88.0,
-            signature_score=82.0,
-            tamper_score=85.0,
-            content_score=87.0
+            ocr_score=ai_results["ocr_score"],
+            layout_score=ai_results["layout_score"],
+            logo_score=ai_results["logo_score"],
+            signature_score=ai_results["signature_score"],
+            tamper_score=ai_results["tamper_score"],
+            content_score=ai_results.get("name_confidence", 0.0)
         )
         
+        trust_score = ai_results["trust_score"]
         is_valid = trust_score >= 70.0
-        anomalies = [] if is_valid else ["Low trust score detected"]
+        anomalies = ai_results["anomalies"] if ai_results["anomalies"] else None
+        
+        logger.info(f"✅ AI verification complete - Trust Score: {trust_score:.2f}%")
         
         return VerificationResult(
             is_valid=is_valid,
@@ -148,7 +156,8 @@ async def verify_ai(
             ai_verified=is_valid,
             trust_score=trust_score,
             details=details,
-            anomalies=anomalies if anomalies else None
+            anomalies=anomalies,
+            certificate=None
         )
         
     except Exception as e:
@@ -182,25 +191,29 @@ async def verify_complete(
         pdf_content = await pdfFile.read()
         logger.info(f"📄 PDF file received: {pdfFile.filename}, size: {len(pdf_content)} bytes")
         
-        # TODO: Implement AI verification
-        trust_score = 85.0
+        # Run AI verification with student name if certificate found
+        expected_name = certificate.student_name if certificate else None
+        ai_results = ai_verification_service.verify_certificate_ai(pdf_content, expected_name)
+        
+        # Create verification details
         details = VerificationDetails(
-            ocr_score=90.0,
-            layout_score=85.0,
-            logo_score=88.0,
-            signature_score=82.0,
-            tamper_score=85.0,
-            content_score=87.0
+            ocr_score=ai_results["ocr_score"],
+            layout_score=ai_results["layout_score"],
+            logo_score=ai_results["logo_score"],
+            signature_score=ai_results["signature_score"],
+            tamper_score=ai_results["tamper_score"],
+            content_score=ai_results.get("name_confidence", 0.0)
         )
         
+        trust_score = ai_results["trust_score"]
         ai_verified = trust_score >= 70.0
         is_valid = blockchain_verified and ai_verified
         
-        anomalies = []
+        anomalies = ai_results["anomalies"].copy() if ai_results["anomalies"] else []
         if not blockchain_verified:
-            anomalies.append("Certificate not found in blockchain")
+            anomalies.insert(0, "Certificate not found in blockchain")
         if not ai_verified:
-            anomalies.append("AI detected potential forgery")
+            anomalies.insert(0, f"AI detected potential forgery (trust score: {trust_score:.1f}%)")
         
         logger.info(f"✅ Verification complete: valid={is_valid}, blockchain={blockchain_verified}, ai={ai_verified}")
         

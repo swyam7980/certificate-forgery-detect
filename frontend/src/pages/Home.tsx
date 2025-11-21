@@ -1,12 +1,29 @@
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { ROUTES } from '../utils/constants';
 
 export const Home = () => {
+  const [showBox, setShowBox] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const pipelineSection = document.getElementById('ai-pipeline');
+      if (pipelineSection) {
+        const rect = pipelineSection.getBoundingClientRect();
+        setShowBox(rect.top < window.innerHeight);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <div className="min-h-[80vh] flex flex-col justify-center">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-gray-900 mb-4">
+            <br></br>
             Blockchain-Powered Certificate Verification
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
@@ -65,7 +82,7 @@ export const Home = () => {
               </div>
               <h3 className="text-xl font-semibold mb-2">Student</h3>
               <p className="text-gray-600">
-                View, download, and share your verified certificates
+                View, download, and share your issued certificates
               </p>
             </div>
           </Link>
@@ -100,74 +117,33 @@ export const Home = () => {
 
         <div className="mt-20 grid md:grid-cols-2 gap-12 items-center">
           <div>
-            <h2 className="text-3xl font-bold mb-4">Why CertifyChain?</h2>
+            <h2 className="text-3xl font-bold mb-4">Why CertificateForgeDetect?</h2>
             <ul className="space-y-4">
               <li className="flex items-start">
-                <svg
-                  className="w-6 h-6 text-green-500 mr-3 mt-1"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
                 <div>
                   <strong>Immutable Records:</strong> Once issued, certificates cannot be altered
                   or tampered with
                 </div>
               </li>
               <li className="flex items-start">
-                <svg
-                  className="w-6 h-6 text-green-500 mr-3 mt-1"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
                 <div>
                   <strong>AI-Powered Detection:</strong> Advanced forgery detection using machine
-                  learning models
+                  learning models 
+                  - tesseract OCR, OpenCV, CNN AND Pillow
                 </div>
               </li>
               <li className="flex items-start">
-                <svg
-                  className="w-6 h-6 text-green-500 mr-3 mt-1"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
                 <div>
                   <strong>Instant Verification:</strong> Anyone can verify certificate
                   authenticity in seconds
                 </div>
               </li>
               <li className="flex items-start">
-                <svg
-                  className="w-6 h-6 text-green-500 mr-3 mt-1"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
                 <div>
-                  <strong>Decentralized Storage:</strong> Certificates stored on IPFS for
+                  <strong>Decentralized Storage:</strong> Certificate hashes stored for
                   permanent availability
+                  <br></br>
+                  <br></br>
                 </div>
               </li>
             </ul>
@@ -191,13 +167,133 @@ export const Home = () => {
                 <div className="w-8 h-8 bg-white text-primary-600 rounded-full flex items-center justify-center font-bold mr-3 flex-shrink-0">
                   3
                 </div>
-                <p>PDF is stored on decentralized IPFS network</p>
+                <p>Verify authenticity using AI-powered forgery detection</p>
               </div>
               <div className="flex items-start">
                 <div className="w-8 h-8 bg-white text-primary-600 rounded-full flex items-center justify-center font-bold mr-3 flex-shrink-0">
                   4
                 </div>
-                <p>Anyone can verify authenticity using hash or PDF</p>
+                <p>Verify authenticity using hash</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* AI Verification Pipeline Section */}
+        <div className="mt-24 mb-12" id="ai-pipeline">
+          <h2 className="text-3xl font-bold text-center mb-12">AI Verification Pipeline</h2>
+          
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            {/* Left - Pipeline Container */}
+            <div>
+              <div className="bg-gradient-to-br from-primary-50 to-primary-100 border-2 border-primary-300 rounded-2xl p-8">
+                <div className="space-y-4">
+                  <div className="flex items-start group cursor-pointer hover:bg-primary-200 p-3 rounded transition-colors">
+                    <div className="w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center text-white text-sm font-bold mr-4 flex-shrink-0">1</div>
+                    <div>
+                      <p className="font-semibold text-gray-900">OCR - Extract text from PDF</p>
+                      <p className="text-sm text-gray-600">Tesseract OCR extracts text content</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start group cursor-pointer hover:bg-primary-200 p-3 rounded transition-colors">
+                    <div className="w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center text-white text-sm font-bold mr-4 flex-shrink-0">2</div>
+                    <div>
+                      <p className="font-semibold text-gray-900">Name Verification - Match student name with blockchain record</p>
+                      <p className="text-sm text-gray-600">Validates name against blockchain data</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start group cursor-pointer hover:bg-primary-200 p-3 rounded transition-colors">
+                    <div className="w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center text-white text-sm font-bold mr-4 flex-shrink-0">3</div>
+                    <div>
+                      <p className="font-semibold text-gray-900">Layout Analysis - Compare certificate layout with templates</p>
+                      <p className="text-sm text-gray-600">OpenCV compares with standard templates</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start group cursor-pointer hover:bg-primary-200 p-3 rounded transition-colors">
+                    <div className="w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center text-white text-sm font-bold mr-4 flex-shrink-0">4</div>
+                    <div>
+                      <p className="font-semibold text-gray-900">Logo Detection - Verify institution logos</p>
+                      <p className="text-sm text-gray-600">Matches logos against registered institutions</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start group cursor-pointer hover:bg-primary-200 p-3 rounded transition-colors">
+                    <div className="w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center text-white text-sm font-bold mr-4 flex-shrink-0">5</div>
+                    <div>
+                      <p className="font-semibold text-gray-900">Signature Analysis - Classify signature authenticity</p>
+                      <p className="text-sm text-gray-600">(Placeholder for future ML models)</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start group cursor-pointer hover:bg-primary-200 p-3 rounded transition-colors">
+                    <div className="w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center text-white text-sm font-bold mr-4 flex-shrink-0">6</div>
+                    <div>
+                      <p className="font-semibold text-gray-900">Tamper Detection - Detect image manipulation</p>
+                      <p className="text-sm text-gray-600">(Placeholder for future ML models)</p>
+                    </div>
+                  </div>
+                </div>
+
+              
+              </div>
+            </div>
+
+            {/* Right - 3D AI Forgery Check Box (appears on scroll) */}
+            <div className="flex justify-center">
+              <div
+                className={`transform transition-all duration-1000 ${
+                  showBox
+                    ? 'opacity-100 scale-100 rotate-0'
+                    : 'opacity-0 scale-50 -rotate-12'
+                }`}
+                style={{
+                  perspective: '1000px',
+                  transformStyle: 'preserve-3d',
+                }}
+              >
+                <div className="relative w-96 h-96 cursor-pointer group"
+                  style={{
+                    transform: 'rotateX(0deg) rotateY(0deg)',
+                    transition: 'transform 0.6s ease-out',
+                  }}
+                >
+                  {/* 3D Box Front */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl shadow-2xl flex items-center justify-center text-white p-8 hover:shadow-3xl transition-shadow"
+                    style={{
+                      transform: 'translateZ(50px)',
+                    }}
+                  >
+                    <div className="text-center">
+                      <p className="text-base font-semibold opacity-75">Detailed</p>
+                      <p className="text-5xl font-bold mt-4">AI-POWERED</p>
+                      <p className="text-base font-semibold mt-4">Forgery Check</p>
+                    </div>
+                  </div>
+
+                  {/* 3D Box Shadow Effect */}
+                  <div className="absolute inset-0 bg-primary-900 rounded-xl blur-lg -z-10"
+                    style={{
+                      transform: 'translateZ(-30px)',
+                    }}
+                  ></div>
+
+                  {/* Top Face */}
+                  <div className="absolute -top-2 left-0 right-0 h-2 bg-gradient-to-r from-primary-300 to-primary-500 rounded-full"
+                    style={{
+                      transform: 'rotateX(90deg) translateZ(50px)',
+                    }}
+                  ></div>
+
+                  {/* Side Face */}
+                  <div className="absolute top-0 -right-2 w-2 h-full bg-gradient-to-b from-primary-600 to-primary-800 rounded-r"
+                    style={{
+                      transform: 'rotateY(90deg) translateZ(50px)',
+                    }}
+                  ></div>
+                </div>
               </div>
             </div>
           </div>
@@ -205,4 +301,4 @@ export const Home = () => {
       </div>
     </div>
   );
-};
+};        

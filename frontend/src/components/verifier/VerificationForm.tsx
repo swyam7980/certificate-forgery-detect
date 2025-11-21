@@ -1,55 +1,65 @@
-import { useState } from 'react';
-import { Button } from '../common/Button';
-import { Card } from '../common/Card';
-import { apiService } from '../../services/api';
-import { truncateHash } from '../../utils/helpers';
-import type { VerificationResult } from '../../types';
+"use client"
+
+import type React from "react"
+
+import { useState } from "react"
+import { Button } from "../common/Button"
+import { Card } from "../common/Card"
+import { apiService } from "../../services/api"
+import { truncateHash } from "../../utils/helpers"
+import type { VerificationResult } from "../../types"
 
 export const VerificationForm = () => {
-  const [hash, setHash] = useState('');
-  const [pdfFile, setPdfFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<VerificationResult | null>(null);
-  const [error, setError] = useState('');
-  const [verificationType, setVerificationType] = useState<'blockchain' | 'ai' | 'complete'>('blockchain');
+  const [hash, setHash] = useState("")
+  const [pdfFile, setPdfFile] = useState<File | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [result, setResult] = useState<VerificationResult | null>(null)
+  const [error, setError] = useState("")
+  const [verificationType, setVerificationType] = useState<"blockchain" | "ai" | "complete">("blockchain")
 
   const handleVerify = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (verificationType !== 'ai' && !hash.trim()) {
-      setError('Please enter a certificate hash');
-      return;
+    e.preventDefault()
+
+    if (verificationType !== "ai" && !hash.trim()) {
+      setError("Please enter a certificate hash")
+      return
     }
 
-    if ((verificationType === 'ai' || verificationType === 'complete') && !pdfFile) {
-      setError('Please upload a PDF file for AI verification');
-      return;
+    if ((verificationType === "ai" || verificationType === "complete") && !pdfFile) {
+      setError("Please upload a PDF file for AI verification")
+      return
     }
 
-    setLoading(true);
-    setError('');
-    setResult(null);
+    setLoading(true)
+    setError("")
+    setResult(null)
 
     try {
-      let response: VerificationResult;
+      let response: VerificationResult
 
-      if (verificationType === 'blockchain') {
-        response = await apiService.verifyBlockchain(hash);
-      } else if (verificationType === 'ai' && pdfFile) {
-        response = await apiService.verifyAI(pdfFile);
-      } else if (verificationType === 'complete' && pdfFile) {
-        response = await apiService.verifyComplete(hash, pdfFile);
+      if (verificationType === "blockchain") {
+        response = await apiService.verifyBlockchain(hash)
+      } else if (verificationType === "ai" && pdfFile) {
+        response = await apiService.verifyAI(pdfFile)
+      } else if (verificationType === "complete" && pdfFile) {
+        response = await apiService.verifyComplete(hash, pdfFile)
       } else {
-        throw new Error('Invalid verification type');
+        throw new Error("Invalid verification type")
       }
 
-      setResult(response);
+      setResult(response)
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Verification failed');
+      setError(err.response?.data?.message || "Verification failed")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
+
+  const handleVerificationTypeChange = (newType: "blockchain" | "ai" | "complete") => {
+    setVerificationType(newType)
+    setError("")
+    setResult(null)
+  }
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -63,8 +73,8 @@ export const VerificationForm = () => {
                   type="radio"
                   name="verificationType"
                   value="blockchain"
-                  checked={verificationType === 'blockchain'}
-                  onChange={(e) => setVerificationType(e.target.value as any)}
+                  checked={verificationType === "blockchain"}
+                  onChange={(e) => handleVerificationTypeChange("blockchain")}
                   className="mr-2"
                 />
                 Blockchain Only
@@ -74,8 +84,8 @@ export const VerificationForm = () => {
                   type="radio"
                   name="verificationType"
                   value="ai"
-                  checked={verificationType === 'ai'}
-                  onChange={(e) => setVerificationType(e.target.value as any)}
+                  checked={verificationType === "ai"}
+                  onChange={(e) => handleVerificationTypeChange("ai")}
                   className="mr-2"
                 />
                 AI Forgery Detection
@@ -85,8 +95,8 @@ export const VerificationForm = () => {
                   type="radio"
                   name="verificationType"
                   value="complete"
-                  checked={verificationType === 'complete'}
-                  onChange={(e) => setVerificationType(e.target.value as any)}
+                  checked={verificationType === "complete"}
+                  onChange={(e) => handleVerificationTypeChange("complete")}
                   className="mr-2"
                 />
                 Complete Verification
@@ -94,7 +104,7 @@ export const VerificationForm = () => {
             </div>
           </div>
 
-          {verificationType !== 'ai' && (
+          {verificationType !== "ai" && (
             <div>
               <label className="label">Certificate Hash</label>
               <input
@@ -107,7 +117,7 @@ export const VerificationForm = () => {
             </div>
           )}
 
-          {(verificationType === 'ai' || verificationType === 'complete') && (
+          {(verificationType === "ai" || verificationType === "complete") && (
             <div>
               <label className="label">Certificate PDF</label>
               <input
@@ -119,14 +129,10 @@ export const VerificationForm = () => {
             </div>
           )}
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-              {error}
-            </div>
-          )}
+          {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">{error}</div>}
 
           <Button type="submit" disabled={loading} className="w-full">
-            {loading ? 'Verifying...' : 'Verify Certificate'}
+            {loading ? "Verifying..." : "Verify Certificate"}
           </Button>
         </form>
       </Card>
@@ -139,23 +145,19 @@ export const VerificationForm = () => {
                 <h3 className="text-xl font-semibold">Verification Result</h3>
                 <span
                   className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                    result.isValid
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-red-100 text-red-800'
+                    result.isValid ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
                   }`}
                 >
-                  {result.isValid ? 'Valid Certificate' : 'Invalid Certificate'}
+                  {result.isValid ? "Valid Certificate" : "Invalid Certificate"}
                 </span>
               </div>
 
               {result.blockchainVerified !== undefined && (
                 <div>
                   <p className="text-sm text-gray-600">
-                    Blockchain Status:{' '}
-                    <span
-                      className={result.blockchainVerified ? 'text-green-600' : 'text-red-600'}
-                    >
-                      {result.blockchainVerified ? 'Verified' : 'Not Found'}
+                    Blockchain Status:{" "}
+                    <span className={result.blockchainVerified ? "text-green-600" : "text-red-600"}>
+                      {result.blockchainVerified ? "Verified" : "Not Found"}
                     </span>
                   </p>
                 </div>
@@ -168,10 +170,10 @@ export const VerificationForm = () => {
                     <div
                       className={`h-4 rounded-full ${
                         result.trustScore >= 80
-                          ? 'bg-green-500'
+                          ? "bg-green-500"
                           : result.trustScore >= 60
-                          ? 'bg-yellow-500'
-                          : 'bg-red-500'
+                            ? "bg-yellow-500"
+                            : "bg-red-500"
                       }`}
                       style={{ width: `${result.trustScore}%` }}
                     ></div>
@@ -230,10 +232,18 @@ export const VerificationForm = () => {
                 <div className="border-t pt-4 mt-4">
                   <h4 className="font-semibold mb-2">Certificate Details</h4>
                   <div className="text-sm space-y-1">
-                    <p><strong>Student:</strong> {result.certificate.studentName}</p>
-                    <p><strong>Course:</strong> {result.certificate.courseName}</p>
-                    <p><strong>Institution:</strong> {result.certificate.institutionName}</p>
-                    <p><strong>Hash:</strong> {truncateHash(result.certificate.certificateHash)}</p>
+                    <p>
+                      <strong>Student:</strong> {result.certificate.studentName}
+                    </p>
+                    <p>
+                      <strong>Course:</strong> {result.certificate.courseName}
+                    </p>
+                    <p>
+                      <strong>Institution:</strong> {result.certificate.institutionName}
+                    </p>
+                    <p>
+                      <strong>Hash:</strong> {truncateHash(result.certificate.certificateHash)}
+                    </p>
                   </div>
                 </div>
               )}
@@ -242,5 +252,5 @@ export const VerificationForm = () => {
         </div>
       )}
     </div>
-  );
-};
+  )
+}

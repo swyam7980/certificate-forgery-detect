@@ -242,8 +242,8 @@ Contributions welcome! Please read CONTRIBUTING.md first.
 - Documentation: [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md)
 - Deployment: [DEPLOYMENT.md](./DEPLOYMENT.md)
 - Issues: GitHub Issues
-- Email: support@certify.dev
 
 ---
 
 **Built with ❤️ using Blockchain, AI, and Web3 technologies**
+
